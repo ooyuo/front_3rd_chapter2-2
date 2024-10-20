@@ -19,7 +19,7 @@ export const useCart = () => {
     totalBeforeDiscount: 0,
     totalAfterDiscount: 0,
     totalDiscount: 0,
-  })
+  });
 
   return {
     cart,
