@@ -1,33 +1,63 @@
-// useCart.ts
-import { useState } from 'react';
-import { CartItem, Coupon, Product } from '../../types';
-import { calculateCartTotal, updateCartItemQuantity } from './utils/cartUtils';
+import { useCallback, useState } from 'react';
+import { CartItem, Coupon, Product } from '../types';
+import {
+  calculateCartTotal,
+  getMaxApplicableDiscount,
+  getRemainingStock,
+  updateCartItemQuantity,
+} from '../utils/cartUtils';
 
 export const useCart = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
-  const addToCart = (product: Product) => {};
+  const addToCart = useCallback(
+    (product: Product) => {
+      const remainingStock = getRemainingStock(product, cart);
+      if (remainingStock <= 0) return;
 
-  const removeFromCart = (productId: string) => {};
+      setCart((prevCart) => {
+        const existingItem = prevCart.find((item) => item.product.id === product.id);
+        if (existingItem) {
+          return updateCartItemQuantity(prevCart, product.id, existingItem.quantity + 1);
+        }
+        return [...prevCart, { product, quantity: 1 }];
+      });
+    },
+    [cart],
+  );
 
-  const updateQuantity = (productId: string, newQuantity: number) => {};
+  const removeFromCart = useCallback((productId: string) => {
+    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+  }, []);
 
-  const applyCoupon = (coupon: Coupon) => {};
+  const updateQuantity = useCallback((productId: string, newQuantity: number) => {
+    setCart((prev) => updateCartItemQuantity(prev, productId, newQuantity));
+  }, []);
 
-  const calculateTotal = () => ({
-    totalBeforeDiscount: 0,
-    totalAfterDiscount: 0,
-    totalDiscount: 0,
-  });
+  const applyCoupon = useCallback((coupon: Coupon) => {
+    setSelectedCoupon(coupon);
+  }, []);
+
+  const removeCoupon = useCallback(() => {
+    setSelectedCoupon(null);
+  }, []);
+
+  const getItemDiscount = useCallback((item: CartItem) => {
+    return getMaxApplicableDiscount(item);
+  }, []);
 
   return {
     cart,
+    selectedCoupon,
+    total: calculateCartTotal(cart, selectedCoupon),
     addToCart,
     removeFromCart,
     updateQuantity,
     applyCoupon,
-    calculateTotal,
-    selectedCoupon,
+    removeCoupon,
+    getItemDiscount,
+    getRemainingStock: useCallback((product: Product) => getRemainingStock(product, cart), [cart]),
+    calculateCartTotal: () => calculateCartTotal(cart, selectedCoupon),
   };
 };
