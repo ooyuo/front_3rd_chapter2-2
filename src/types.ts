@@ -1,3 +1,9 @@
+export interface CartTotal {
+  totalBeforeDiscount: number;
+  totalAfterDiscount: number;
+  totalDiscount: number;
+}
+
 export interface Product {
   id: string;
   name: string;

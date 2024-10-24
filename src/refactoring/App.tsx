@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { CartPage } from './components/CartPage.tsx';
-import { AdminPage } from './components/AdminPage.tsx';
 import { Coupon, Product } from '../types.ts';
-import { useCoupons, useProducts } from './hooks';
+import AdminPage from './pages/AdminPage.tsx';
+import { useProductContext } from './contexts/ProductContext.tsx';
+import CartPage from './pages/CartPage.tsx';
+import { useCouponsContext } from './contexts/CouponContext.tsx';
 
-const initialProducts: Product[] = [
+export const initialProducts: Product[] = [
   {
     id: 'p1',
     name: '상품1',
@@ -47,9 +48,9 @@ const initialCoupons: Coupon[] = [
 ];
 
 const App = () => {
-  const { products, updateProduct, addProduct } = useProducts(initialProducts);
-  const { coupons, addCoupon } = useCoupons(initialCoupons);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { products } = useProductContext();
+  const { coupons } = useCouponsContext();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -65,17 +66,7 @@ const App = () => {
         </div>
       </nav>
       <main className="container mx-auto mt-6">
-        {isAdmin ? (
-          <AdminPage
-            products={products}
-            coupons={coupons}
-            onProductUpdate={updateProduct}
-            onProductAdd={addProduct}
-            onCouponAdd={addCoupon}
-          />
-        ) : (
-          <CartPage products={products} coupons={coupons} />
-        )}
+        {isAdmin ? <AdminPage /> : <CartPage products={products} coupons={coupons} />}
       </main>
     </div>
   );
